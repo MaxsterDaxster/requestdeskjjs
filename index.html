@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Request Desk — Jujutsu Shenanigans Piano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  :root{
+    --ebony:#14110F;
+    --ivory:#FAF6EC;
+    --brass:#B8985A;
+    --brass-dark:#8C733E;
+    --ink:#2B2622;
+    --ink-soft:#5B554C;
+    --line:#D9D2C2;
+    --line-soft:#EAE4D6;
+    --red:#A3402F;
+    --green:#4C6B4F;
+    --card:#FFFDF8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--ivory);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    line-height:1.55;
+  }
+  h1,h2,h3{
+    font-family:'Fraunces',serif;
+    font-weight:500;
+    margin:0;
+    color:var(--ebony);
+  }
+  a{color:var(--brass-dark);}
+  button{
+    font-family:'Inter',sans-serif;
+    cursor:pointer;
+  }
+  input,textarea,select{
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+  }
+  /* ---------- shell ---------- */
+  .shell{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 28px 80px;
+  }
+  header.top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    padding:36px 0 20px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:28px;
+  }
+  header.top .title-block{
+    display:flex;
+    align-items:baseline;
+    gap:14px;
+  }
+  header.top h1{font-size:26px;}
+  header.top .sub{color:var(--ink-soft);font-size:13px;}
+  .staff{
+    height:1px;
+    background:repeating-linear-gradient(to bottom, transparent 0, transparent 4px, var(--line) 4px, var(--line) 5px);
+  }
+  nav.tabs{
+    display:flex;
+    gap:4px;
+    margin-bottom:28px;
+  }
+  nav.tabs button{
+    background:none;
+    border:none;
+    border-bottom:2px solid transparent;
+    padding:10px 4px;
+    margin-right:24px;
+    font-size:14px;
+    color:var(--ink-soft);
+  }
+  nav.tabs button.active{
+    color:var(--ebony);
+    border-bottom-color:var(--brass);
+    font-weight:500;
+  }
+  nav.tabs button .count{
+    display:inline-block;
+    margin-left:6px;
+    font-size:11px;
+    color:var(--brass-dark);
+  }
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  /* ---------- buttons ---------- */
+  .btn{
+    border:1px solid var(--line);
+    background:var(--card);
+    padding:8px 14px;
+    border-radius:3px;
+    font-size:13px;
+    color:var(--ink);
+  }
+  .btn:hover{border-color:var(--brass);}
+  .btn.primary{
+    background:var(--ebony);
+    color:var(--ivory);
+    border-color:var(--ebony);
+  }
+  .btn.primary:hover{background:#000;}
+  .btn.subtle{border-color:transparent;background:none;color:var(--ink-soft);}
+  .btn.subtle:hover{color:var(--ink);}
+  .btn.danger{color:var(--red);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  /* ---------- inbox ---------- */
+  .inbox-toolbar{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    margin-bottom:18px;
+    flex-wrap:wrap;
+  }
+  .inbox-toolbar .status-msg{font-size:13px;color:var(--ink-soft);}
+  .comment-row{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:16px;
+    padding:16px 0;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .comment-row .meta{
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  .badge{
+    font-size:11px;
+    padding:2px 8px;
+    border-radius:20px;
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+  .badge.request{border-color:var(--brass);color:var(--brass-dark);}
+  .badge.question{border-color:#7C8FA6;color:#4C617A;}
+  .badge.feedback{border-color:var(--green);color:var(--green);}
+  .badge.spam{border-color:var(--red);color:var(--red);}
+  .comment-row .text{font-size:14px;}
+  .comment-row .actions{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    min-width:150px;
+  }
+  select.recat{
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:5px 6px;
+    background:var(--card);
+    color:var(--ink);
+  }
+  .empty-state{
+    padding:60px 0;
+    text-align:center;
+    color:var(--ink-soft);
+  }
+  .empty-state h3{margin-bottom:8px;color:var(--ink);}
+
+  /* ---------- board ---------- */
+  .board{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:22px;
+  }
+  .column h2{
+    font-size:15px;
+    font-weight:500;
+    font-family:'Inter',sans-serif;
+    color:var(--ink-soft);
+    padding-bottom:10px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:14px;
+    display:flex;
+    justify-content:space-between;
+  }
+  .ticket{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:14px 14px 12px;
+    margin-bottom:12px;
+    position:relative;
+  }
+  .ticket.priority-high::before{
+    content:"";
+    position:absolute;
+    top:0;right:0;
+    width:0;height:0;
+    border-style:solid;
+    border-width:0 16px 16px 0;
+    border-color:transparent var(--brass) transparent transparent;
+  }
+  .ticket .song{
+    font-family:'Fraunces',serif;
+    font-size:16px;
+    margin-bottom:4px;
+    padding-right:14px;
+  }
+  .ticket .who{font-size:12px;color:var(--ink-soft);margin-bottom:8px;}
+  .ticket .excerpt{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin-bottom:10px;
+    max-height:3.2em;
+    overflow:hidden;
+  }
+  .ticket .row-line{
+    display:flex;
+    gap:8px;
+    margin-bottom:8px;
+    align-items:center;
+  }
+  .ticket select, .ticket input[type=date]{
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:4px 6px;
+    font-size:12px;
+    background:var(--ivory);
+  }
+  .ticket textarea{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:6px 8px;
+    font-size:12px;
+    resize:vertical;
+    min-height:44px;
+    background:var(--ivory);
+  }
+  .ticket .footer{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:8px;
+  }
+  .ticket .footer .saved{
+    font-size:11px;
+    color:var(--green);
+    opacity:0;
+    transition:opacity .3s;
+  }
+  .ticket .footer .saved.show{opacity:1;}
+
+  /* ---------- settings ---------- */
+  .settings-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:36px;
+  }
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .field input, .field textarea{
+    width:100%;
+    padding:8px 10px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    background:var(--card);
+  }
+  .field .hint{font-size:12px;color:var(--ink-soft);margin-top:4px;}
+  .settings-card{
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:20px;
+    background:var(--card);
+  }
+  .settings-card h3{font-size:16px;margin-bottom:14px;}
+  .divider-label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--ink-soft);
+    margin:24px 0 10px;
+  }
+  .signin-box{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-top:10px;
+  }
+  .pill-status{
+    font-size:12px;
+    padding:4px 10px;
+    border-radius:20px;
+    background:var(--line-soft);
+    color:var(--ink-soft);
+  }
+  .pill-status.on{background:#E3ECE3;color:var(--green);}
+
+  @media (max-width:860px){
+    .board{grid-template-columns:1fr;}
+    .settings-grid{grid-template-columns:1fr;}
+    .comment-row{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <header class="top">
+    <div class="title-block">
+      <h1>Request desk</h1>
+      <span class="sub">Jujutsu Shenanigans — piano arrangements</span>
+    </div>
+    <span id="autosave-indicator" class="pill-status">All changes saved locally</span>
+  </header>
+
+  <nav class="tabs">
+    <button data-tab="inbox" class="active">Inbox <span class="count" id="inbox-count"></span></button>
+    <button data-tab="board">Board <span class="count" id="board-count"></span></button>
+    <button data-tab="settings">Settings</button>
+  </nav>
+
+  <!-- INBOX -->
+  <section class="panel active" id="panel-inbox">
+    <div class="inbox-toolbar">
+      <button class="btn primary" id="fetch-btn">Fetch new comments</button>
+      <button class="btn" id="paste-btn">Paste comments manually</button>
+      <span class="status-msg" id="inbox-status"></span>
+    </div>
+    <div id="inbox-list"></div>
+  </section>
+
+  <!-- BOARD -->
+  <section class="panel" id="panel-board">
+    <div class="board">
+      <div class="column">
+        <h2>To do <span id="col-count-todo"></span></h2>
+        <div id="col-todo"></div>
+      </div>
+      <div class="column">
+        <h2>In progress <span id="col-count-progress"></span></h2>
+        <div id="col-progress"></div>
+      </div>
+      <div class="column">
+        <h2>Done <span id="col-count-done"></span></h2>
+        <div id="col-done"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="panel" id="panel-settings">
+    <div class="settings-grid">
+      <div class="settings-card">
+        <h3>YouTube connection</h3>
+        <div class="field">
+          <label>OAuth client ID</label>
+          <input type="text" id="cfg-client-id" placeholder="xxxxxxxx.apps.googleusercontent.com">
+          <div class="hint">From Google Cloud Console → Credentials. See the README for setup steps.</div>
+        </div>
+        <div class="field">
+          <label>YouTube Data API key</label>
+          <input type="text" id="cfg-api-key" placeholder="AIza...">
+        </div>
+        <div class="field">
+          <label>Your channel ID</label>
+          <input type="text" id="cfg-channel-id" placeholder="UCxxxxxxxxxxxxxxxxxxxxxx">
+          <div class="hint">Found in YouTube Studio → Settings → Channel → Advanced.</div>
+        </div>
+        <div class="signin-box">
+          <button class="btn primary" id="signin-btn">Sign in with Google</button>
+          <span class="pill-status" id="signin-status">Not signed in</span>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <h3>Data</h3>
+        <p style="font-size:13px;color:var(--ink-soft);margin-top:0;">Everything is stored only in this browser's local storage. Export a backup or move data to another device with import.</p>
+        <div class="field">
+          <button class="btn" id="export-btn">Export all data (.json)</button>
+        </div>
+        <div class="field">
+          <label>Import from file</label>
+          <input type="file" id="import-file" accept="application/json">
+        </div>
+        <div class="divider-label">Danger zone</div>
+        <button class="btn danger" id="clear-btn">Clear all local data</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

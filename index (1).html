@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Request Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B1B1F;
+    --ink-soft:#6B6B72;
+    --ink-faint:#9A9AA1;
+    --paper:#FFFFFF;
+    --canvas:#F6F5F3;
+    --line:#E7E5E1;
+    --line-strong:#D7D4CE;
+    --accent:#5B3E82;
+    --accent-tint:#F0EBF6;
+    --accent-tint-strong:#E0D5EE;
+    --red:#A8402E;
+    --red-tint:#FBEDEA;
+    --green:#3D7A53;
+    --green-tint:#EAF4EC;
+    --blue:#3A5FA0;
+    --blue-tint:#EAEFF8;
+    --amber:#966B1F;
+    --amber-tint:#F8F0DF;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--canvas);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    line-height:1.6;
+  }
+  h1,h2,h3{
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    margin:0;
+    color:var(--ink);
+    letter-spacing:-0.01em;
+  }
+  a{color:var(--accent);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  button{font-family:'Inter',sans-serif;cursor:pointer;}
+  input,textarea,select{font-family:'Inter',sans-serif;font-size:13px;color:var(--ink);}
+
+  /* ---------- app shell: sidebar + content ---------- */
+  .app{
+    display:flex;
+    min-height:100vh;
+  }
+  .sidebar{
+    width:216px;
+    flex-shrink:0;
+    padding:20px 12px;
+    border-right:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    position:sticky;
+    top:0;
+    height:100vh;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:6px 8px 20px;
+  }
+  .brand-mark{
+    width:20px;height:20px;
+    border-radius:5px;
+    background:var(--ink);
+    position:relative;
+    flex-shrink:0;
+  }
+  .brand-mark::before,.brand-mark::after{
+    content:"";
+    position:absolute;
+    background:var(--paper);
+    top:4px;bottom:4px;
+    width:2px;
+  }
+  .brand-mark::before{left:6px;}
+  .brand-mark::after{left:11px;}
+  .brand-name{font-size:13px;font-weight:600;}
+
+  nav.tabs{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  nav.tabs button{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:none;
+    border:none;
+    border-radius:6px;
+    padding:8px 10px;
+    font-size:13px;
+    color:var(--ink-soft);
+    text-align:left;
+    width:100%;
+  }
+  nav.tabs button:hover{background:var(--line);color:var(--ink);}
+  nav.tabs button.active{background:var(--accent-tint);color:var(--accent);font-weight:500;}
+  nav.tabs button .count{
+    font-size:11px;
+    color:var(--ink-faint);
+  }
+  nav.tabs button.active .count{color:var(--accent);}
+
+  .sidebar-foot{
+    margin-top:auto;
+    padding:8px;
+    font-size:11px;
+    color:var(--ink-faint);
+  }
+  .save-dot{
+    display:inline-block;
+    width:6px;height:6px;
+    border-radius:50%;
+    background:var(--green);
+    margin-right:6px;
+    vertical-align:1px;
+  }
+
+  /* ---------- main content ---------- */
+  .content{
+    flex:1;
+    min-width:0;
+    padding:32px 40px 80px;
+    max-width:920px;
+  }
+  .page-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:24px;
+  }
+  .page-head h1{font-size:18px;}
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  /* ---------- buttons ---------- */
+  .btn{
+    border:1px solid var(--line-strong);
+    background:var(--paper);
+    padding:6px 12px;
+    border-radius:6px;
+    font-size:13px;
+    color:var(--ink);
+  }
+  .btn:hover{border-color:var(--ink-faint);}
+  .btn.primary{
+    background:var(--ink);
+    color:var(--paper);
+    border-color:var(--ink);
+  }
+  .btn.primary:hover{background:#000;}
+  .btn.subtle{border-color:transparent;background:none;color:var(--ink-soft);padding:6px 8px;}
+  .btn.subtle:hover{color:var(--ink);background:var(--line);}
+  .btn.danger{color:var(--red);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  /* ---------- inbox ---------- */
+  .inbox-toolbar{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    margin-bottom:20px;
+  }
+  .inbox-toolbar .status-msg{font-size:12px;color:var(--ink-soft);}
+  .comment-row{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:16px;
+    align-items:start;
+    padding:14px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .comment-row .meta{
+    font-size:12px;
+    color:var(--ink-faint);
+    margin-bottom:5px;
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  .pill{
+    font-size:11px;
+    font-weight:500;
+    padding:2px 8px;
+    border-radius:20px;
+    white-space:nowrap;
+    background:var(--line);
+    color:var(--ink-soft);
+  }
+  .pill.request{background:var(--accent-tint);color:var(--accent);}
+  .pill.question{background:var(--blue-tint);color:var(--blue);}
+  .pill.feedback{background:var(--green-tint);color:var(--green);}
+  .pill.spam{background:var(--red-tint);color:var(--red);}
+  .comment-row .text{font-size:13.5px;color:var(--ink);}
+  .comment-row .actions{
+    display:flex;
+    gap:6px;
+    align-items:center;
+  }
+  select.recat{
+    border:1px solid var(--line-strong);
+    border-radius:6px;
+    padding:5px 6px;
+    background:var(--paper);
+    color:var(--ink);
+    font-size:12px;
+  }
+  .empty-state{
+    padding:56px 0;
+    text-align:center;
+    color:var(--ink-soft);
+  }
+  .empty-state h3{margin-bottom:6px;color:var(--ink);font-size:14px;}
+  .empty-state p{font-size:13px;margin:0;}
+
+  /* ---------- board ---------- */
+  .board{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:20px;
+  }
+  .column h2{
+    font-size:12px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:var(--ink-faint);
+    padding-bottom:10px;
+    margin-bottom:12px;
+    display:flex;
+    justify-content:space-between;
+  }
+  .ticket{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:12px 14px;
+    margin-bottom:10px;
+  }
+  .ticket .top-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:8px;
+    margin-bottom:4px;
+  }
+  .ticket .song{
+    font-size:13.5px;
+    font-weight:500;
+    outline:none;
+  }
+  .ticket .song:focus{background:var(--accent-tint);border-radius:3px;}
+  .prio-flag{
+    width:6px;height:6px;
+    border-radius:50%;
+    flex-shrink:0;
+    margin-top:5px;
+  }
+  .prio-flag.high{background:var(--red);}
+  .prio-flag.medium{background:var(--amber);}
+  .prio-flag.low{background:var(--ink-faint);}
+  .ticket .who{font-size:11.5px;color:var(--ink-faint);margin-bottom:8px;display:flex;gap:6px;align-items:center;}
+  .ticket .excerpt{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-bottom:10px;
+    max-height:3.2em;
+    overflow:hidden;
+  }
+  .ticket .row-line{
+    display:flex;
+    gap:6px;
+    margin-bottom:8px;
+  }
+  .ticket select, .ticket input[type=date]{
+    border:1px solid var(--line-strong);
+    border-radius:5px;
+    padding:4px 5px;
+    font-size:11.5px;
+    background:var(--canvas);
+    flex:1;
+    min-width:0;
+  }
+  .ticket textarea{
+    width:100%;
+    border:1px solid var(--line-strong);
+    border-radius:5px;
+    padding:6px 8px;
+    font-size:12px;
+    resize:vertical;
+    min-height:40px;
+    background:var(--canvas);
+  }
+  .ticket .footer{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:8px;
+  }
+  .ticket .footer a{font-size:11.5px;}
+  .ticket .footer .saved{
+    font-size:11px;
+    color:var(--green);
+    opacity:0;
+    transition:opacity .3s;
+  }
+  .ticket .footer .saved.show{opacity:1;}
+  .ticket .footer button.danger{font-size:11.5px;}
+
+  /* ---------- settings ---------- */
+  .settings-grid{max-width:440px;}
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+  }
+  .field input, .field textarea{
+    width:100%;
+    padding:7px 10px;
+    border:1px solid var(--line-strong);
+    border-radius:6px;
+    background:var(--paper);
+  }
+  .settings-card{
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:18px;
+    background:var(--paper);
+  }
+  .settings-card h3{font-size:14px;margin-bottom:12px;}
+  .settings-card p{font-size:12.5px;color:var(--ink-soft);}
+  .divider-label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--ink-faint);
+    margin:20px 0 8px;
+  }
+
+  @media (max-width:900px){
+    .app{flex-direction:column;}
+    .sidebar{width:100%;height:auto;position:relative;border-right:none;border-bottom:1px solid var(--line);}
+    nav.tabs{flex-direction:row;}
+    .board{grid-template-columns:1fr;}
+    .content{padding:24px 20px 60px;max-width:none;}
+    .comment-row{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div class="brand-name">Request desk</div>
+    </div>
+    <nav class="tabs">
+      <button data-tab="inbox" class="active">Inbox <span class="count" id="inbox-count"></span></button>
+      <button data-tab="board">Board <span class="count" id="board-count"></span></button>
+      <button data-tab="settings">Settings</button>
+    </nav>
+    <div class="sidebar-foot" id="autosave-indicator"><span class="save-dot"></span>All changes saved locally</div>
+  </aside>
+
+  <main class="content">
+
+    <!-- INBOX -->
+    <section class="panel active" id="panel-inbox">
+      <div class="page-head"><h1>Inbox</h1></div>
+      <div class="inbox-toolbar">
+        <button class="btn primary" id="paste-btn">Paste comments</button>
+        <span class="status-msg" id="inbox-status"></span>
+      </div>
+      <div id="inbox-list"></div>
+    </section>
+
+    <!-- BOARD -->
+    <section class="panel" id="panel-board">
+      <div class="page-head"><h1>Board</h1></div>
+      <div class="board">
+        <div class="column">
+          <h2>To do <span id="col-count-todo"></span></h2>
+          <div id="col-todo"></div>
+        </div>
+        <div class="column">
+          <h2>In progress <span id="col-count-progress"></span></h2>
+          <div id="col-progress"></div>
+        </div>
+        <div class="column">
+          <h2>Done <span id="col-count-done"></span></h2>
+          <div id="col-done"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="panel" id="panel-settings">
+      <div class="page-head"><h1>Settings</h1></div>
+      <div class="settings-grid">
+        <div class="settings-card">
+          <h3>Data</h3>
+          <p>Everything is stored only in this browser's local storage. Export a backup or move data to another device with import.</p>
+          <div class="field">
+            <button class="btn" id="export-btn">Export all data (.json)</button>
+          </div>
+          <div class="field">
+            <label>Import from file</label>
+            <input type="file" id="import-file" accept="application/json">
+          </div>
+          <div class="divider-label">Danger zone</div>
+          <button class="btn danger" id="clear-btn">Clear all local data</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
